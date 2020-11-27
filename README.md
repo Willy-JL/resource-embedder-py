@@ -1,0 +1,1 @@
+# resource-embedder-py
