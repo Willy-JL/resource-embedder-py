@@ -10,8 +10,6 @@ The manager aspect of this tool is command line:
 
 `python resources.py add filename`
 
-And update the DATA line in the file
-
 #### Extract files:
 
 `python resources.py extract filename`
@@ -19,8 +17,6 @@ And update the DATA line in the file
 #### Remove files:
 
 `python resources.py remove filename`
-
-And update the DATA line in the file
 
 #### Show files:
 

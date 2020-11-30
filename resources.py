@@ -11,8 +11,7 @@ class Resource:
 
     """Manager for resources that would normally be held externally."""
 
-    MODE = ".txt file"  # options: "clipboard" or ".txt file", determines how you receive your new data strings
-    WIDTH = 119
+    MODE = "auto update"  # options: "auto update" or "clipboard" or ".txt file", determines how you receive your new data strings
     __CACHE = {}
     DATA = {}
 
@@ -77,21 +76,28 @@ class Resource:
     @classmethod
     def __output_data(cls):
         """Output DATA dict line."""
+        out = "    DATA"
+        out += " = {"
+        for i, key in enumerate(cls.DATA):
+            out += f"'{key}': {cls.DATA[key]}{', ' if i != len(cls.DATA)-1 else ''}"
+        out += "}\n"
         if cls.MODE == ".txt file":
             with open('resource_data.txt', 'w') as f:
-                f.write("\n    DATA = {")
-                for i, key in enumerate(cls.DATA):
-                    f.write(f"'{key}': {cls.DATA[key]}{', ' if i != len(cls.DATA)-1 else ''}")
-                f.write("}\n")
+                f.write(f"\n{out}")
             print('Saved new DATA line to resource_data.txt! Replace the existing DATA line in ' + __file__[__file__.rfind("\\" if sys.platform == "win32" else "/")+1:] + '!')
         elif cls.MODE == "clipboard":
-            out = "\n    DATA = {"
-            for i, key in enumerate(cls.DATA):
-                out += f"'{key}': {cls.DATA[key]}{', ' if i != len(cls.DATA)-1 else ''}"
-            out += "}\n"
             import pyperclip
-            pyperclip.copy(out)
-            print(f'Copied new DATA line to clipboard! Replace the existing DATA line in {__file__}!')
+            pyperclip.copy(f"\n{out}")
+            print(f'Copied new DATA line to clipboard! Replace the existing DATA line in ' + __file__[__file__.rfind("\\" if sys.platform == "win32" else "/")+1:] + '!')
+        elif cls.MODE == "auto update":
+            with open(__file__) as f:
+                lines = f.readlines()
+            for i, line in enumerate(lines):
+                if line.startswith('    DATA = {'):
+                    lines[i] = out
+            with open(__file__, 'w') as f:
+                f.writelines(lines)
+            print(f'Updated ' + __file__[__file__.rfind("\\" if sys.platform == "win32" else "/")+1:] + ' with new DATA line!')
 
     @staticmethod
     def __print(line):
