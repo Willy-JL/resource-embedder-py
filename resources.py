@@ -11,75 +11,87 @@ class Resource:
 
     """Manager for resources that would normally be held externally."""
 
-    MODE = "clipboard"  # either "clipboard" or ".txt file", determines how you receive your new data strings
+    MODE = ".txt file"  # options: "clipboard" or ".txt file", determines how you receive your new data strings
     WIDTH = 119
-    __CACHE = None
-    DATA = b''
+    __CACHE = {}
+    DATA = {}
 
     @classmethod
-    def add(cls, *paths):
-        """Include paths in the pre-generated DATA block up above."""
-        if cls.DATA != b'':
-            cls.__preload()
-        cls.__generate_data(paths, cls.__CACHE.copy())
+    def add(cls, path):
+        """Include paths in the DATA line up above."""
+        if path in cls.DATA:
+            print("Already in data!")
+        else:
+            cls.__generate_data(path)
 
     @classmethod
-    def remove(cls, *paths):
-        """Remove paths from the pre-generated DATA block up above."""
-        cls.__preload()
-        cls.__remove_data(paths, cls.__CACHE.copy())
+    def remove(cls, path):
+        """Remove paths from the DATA line up above."""
+        if path not in cls.DATA:
+            print("Item not in data!")
+        else:
+            cls.__remove_data(path)
 
     @classmethod
-    def __generate_data(cls, paths, buffer):
-        """Load paths into buffer and output DATA code for the class."""
-        for path in map(pathlib.Path, paths):
-            if not path.is_file():
-                raise ValueError('{!r} is not a file'.format(path))
-            key = path.name
-            if key in buffer:
-                raise KeyError('{!r} has already been included'.format(key))
-            with path.open('rb') as file:
-                buffer[key] = file.read()
-        pickled = pickle.dumps(buffer, pickle.HIGHEST_PROTOCOL)
+    def extract(cls, path):
+        """Extract paths from the DATA line up above."""
+        if path not in cls.DATA:
+            print("Item not in data!")
+        else:
+            cls.__remove_data(path, remove=False)
+
+    @classmethod
+    def __generate_data(cls, name):
+        """Encode item and output new DATA line for the class."""
+        path = pathlib.Path(name)
+        if not path.is_file():
+            raise ValueError('{!r} is not a file'.format(name))
+        key = name
+        if key in cls.DATA:
+            raise KeyError('{!r} has already been included'.format(key))
+        with path.open('rb') as file:
+            content = file.read()
+        pickled = pickle.dumps({key: content}, pickle.HIGHEST_PROTOCOL)
         optimized = pickletools.optimize(pickled)
         compressed = zlib.compress(optimized, zlib.Z_BEST_COMPRESSION)
         encoded = base64.b85encode(compressed)
-        cls.__output_data(encoded)
+        cls.DATA[key] = encoded
+        cls.__output_data()
 
     @classmethod
-    def __remove_data(cls, paths, buffer):
-        """Remove paths from buffer and output DATA code for the class."""
-        for key in paths:
-            if key not in buffer:
-                raise KeyError('{!r} is not included'.format(key))
-            with pathlib.Path(key).open('wb') as file:
-                file.write(buffer[key])
-            del buffer[key]
-        pickled = pickle.dumps(buffer, pickle.HIGHEST_PROTOCOL)
-        optimized = pickletools.optimize(pickled)
-        compressed = zlib.compress(optimized, zlib.Z_BEST_COMPRESSION)
-        encoded = base64.b85encode(compressed)
-        cls.__output_data(encoded)
+    def __remove_data(cls, path, remove=True):
+        """Remove item and output new DATA line for the class."""
+        key = path
+        if key not in cls.DATA:
+            raise KeyError('{!r} is not included'.format(key))
+        with pathlib.Path(key).open('wb') as file:
+            if key not in cls.__CACHE:
+                cls.__preload(key)
+            file.write(cls.__CACHE[key][key])
+        if remove:
+            del cls.DATA[key]
+            cls.__output_data()
+        else:
+            print(f'Extracted {path}!')
 
     @classmethod
-    def __output_data(cls, encoded):
+    def __output_data(cls):
+        """Output DATA dict line."""
         if cls.MODE == ".txt file":
             with open('resource_data.txt', 'w') as f:
-                f.write("    DATA = b'''")
-                for offset in range(0, len(encoded), cls.WIDTH):
-                    f.write("\\\n" + encoded[
-                        slice(offset, offset + cls.WIDTH)].decode('ascii'))
-                f.write("'''")
-            print('Saved new DATA block to resource_data.txt!')
+                f.write("\n    DATA = {")
+                for i, key in enumerate(cls.DATA):
+                    f.write(f"'{key}': {cls.DATA[key]}{', ' if i != len(cls.DATA)-1 else ''}")
+                f.write("}\n")
+            print('Saved new DATA line to resource_data.txt! Replace the existing DATA line in ' + __file__[__file__.rfind("\\" if sys.platform == "win32" else "/")+1:] + '!')
         elif cls.MODE == "clipboard":
-            out = "    DATA = b'''"
-            for offset in range(0, len(encoded), cls.WIDTH):
-                out += "\\\n" + encoded[
-                    slice(offset, offset + cls.WIDTH)].decode('ascii')
-            out += "'''"
+            out = "\n    DATA = {"
+            for i, key in enumerate(cls.DATA):
+                out += f"'{key}': {cls.DATA[key]}{', ' if i != len(cls.DATA)-1 else ''}"
+            out += "}\n"
             import pyperclip
             pyperclip.copy(out)
-            print('Copied new DATA block to clipboard!')
+            print(f'Copied new DATA line to clipboard! Replace the existing DATA line in {__file__}!')
 
     @staticmethod
     def __print(line):
@@ -90,34 +102,37 @@ class Resource:
     @classmethod
     def query(cls):
         """Query all items in resource manager."""
-        cls.__preload()
-        for key in cls.__CACHE:
+        if cls.DATA == {}:
+            print('Nothing to show!')
+            return
+        for key in cls.DATA:
             cls.__print(key + '\n')
 
     @classmethod
     @contextlib.contextmanager
     def load(cls, name, delete=True):
         """Dynamically loads resources and makes them usable while needed."""
-        cls.__preload()
-        if name not in cls.__CACHE:
+        if name not in cls.DATA:
             raise KeyError('{!r} cannot be found'.format(name))
+        if name not in cls.__CACHE:
+            cls.__preload(name)
         path = pathlib.Path(name)
         with path.open('wb') as file:
-            file.write(cls.__CACHE[name])
+            file.write(cls.__CACHE[name][name])
         yield path
         if delete:
             path.unlink()
 
     @classmethod
-    def __preload(cls):
-        """Warm up the cache if it does not exist in a ready state yet."""
-        if cls.__CACHE is None:
-            decoded = base64.b85decode(cls.DATA)
+    def __preload(cls, path):
+        """Load item in cache if it does not exist in a ready state yet."""
+        if path not in cls.__CACHE:
+            decoded = base64.b85decode(cls.DATA[path])
             decompressed = zlib.decompress(decoded)
-            cls.__CACHE = pickle.loads(decompressed)
+            cls.__CACHE[path] = pickle.loads(decompressed)
 
     def __init__(self):
-        """Creates an error explaining class was used improperly."""
+        """Creates an error explaining that the class was used improperly."""
         raise NotImplementedError('class was not designed for instantiation')
 
 
@@ -128,12 +143,14 @@ if __name__ == '__main__':
         else:
             print('Invalid argument!')
     elif len(sys.argv) == 3:
-        file = sys.argv[2]
+        file_name = sys.argv[2]
         if sys.argv[1] == 'add':
-            Resource.add(file)
+            Resource.add(file_name)
+        elif sys.argv[1] == 'extract':
+            Resource.extract(file_name)
         elif sys.argv[1] == 'remove':
-            Resource.remove(file)
+            Resource.remove(file_name)
         else:
             print('Invalid argument!')
     else:
-        print('Specify add / remove / query!')
+        print('Specify [ add / extract / remove / query ]!')

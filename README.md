@@ -10,13 +10,17 @@ The manager aspect of this tool is command line:
 
 `python resources.py add filename`
 
-And paste the new DATA string in the file
+And update the DATA line in the file
+
+#### Extract files:
+
+`python resources.py extract filename`
 
 #### Remove files:
 
 `python resources.py remove filename`
 
-And paste the new DATA string in the file
+And update the DATA line in the file
 
 #### Show files:
 
@@ -28,6 +32,16 @@ And paste the new DATA string in the file
 from resources import Resource
 
 with Resource.load('filename') as file:
+    # Anything you would do with a normal file
+    contents = open(file).read()
+```
+
+If you need to keep the file and not delete it:
+
+```python
+from resources import Resource
+
+with Resource.load('filename', delete=False) as file:
     # Anything you would do with a normal file
     contents = open(file).read()
 ```
