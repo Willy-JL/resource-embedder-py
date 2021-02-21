@@ -42,6 +42,6 @@ with Resource.load('filename', delete=False) as file:
     contents = open(file).read()
 ```
 
-### Thanks:
+### Credits:
 
 Huge thanks to [this answer](https://stackoverflow.com/a/39350365) on stackoverflow, I basically took that and made it more user friendly.
