@@ -8,23 +8,31 @@ The manager aspect of this tool is command line:
 
 #### Add files:
 
-`python resources.py add filename`
+```
+python resources.py add filename
+```
 
 #### Extract files:
 
-`python resources.py extract filename`
+```
+python resources.py extract filename
+```
 
 #### Remove files:
 
-`python resources.py remove filename`
+```
+python resources.py remove filename
+```
 
 #### List files:
 
-`python resources.py list`
+```
+python resources.py list
+```
 
 ## Use resources
 
-Make sure the exists, and extract it if it doesn't:
+Make sure the file exists, and extract it if it doesn't:
 
 ```python
 from resources import Resource
