@@ -38,8 +38,9 @@ Make sure the file exists, and extract it if it doesn't:
 from resources import Resource
 
 Resource.ensure('filename')
-  # OR
-Resource.ensure('filename', 'name')  # providing a second argument will print "<name> was not found, extracting..." if the file needs to be extracted
+# OR
+Resource.ensure('filename', 'name')
+# providing a second argument will print "<name> was not found, extracting..." when relevant
 ```
 
 Alternatively, extract it and delete it after it's been used:
@@ -50,7 +51,7 @@ from resources import Resource
 with Resource.load('filename') as file:
     # Anything you would do with a normal file
     contents = open(file).read()
-  # The temporary extracted file will be deleted after exiting from the "with" block
+# The temporary extracted file will be deleted after exiting from the "with" block
 ```
 
 ### Credits:
