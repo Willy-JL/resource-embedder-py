@@ -18,9 +18,9 @@ The manager aspect of this tool is command line:
 
 `python resources.py remove filename`
 
-#### Show files:
+#### List files:
 
-`python resources.py query`
+`python resources.py list`
 
 ## Use resources
 

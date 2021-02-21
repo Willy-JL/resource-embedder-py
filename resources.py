@@ -107,11 +107,12 @@ class Resource:
         sys.stdout.flush()
 
     @classmethod
-    def query(cls):
-        """Query all items in resource manager."""
+    def list(cls):
+        """List all items in resource manager."""
         if cls.DATA == {}:
             print('Nothing to show!')
             return
+        print("This might take a while!\n")
         for key in cls.DATA:
             cls.__print(key + '\n')
 
@@ -153,8 +154,8 @@ class Resource:
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        if sys.argv[1] == 'query':
-            Resource.query()
+        if sys.argv[1] == 'list':
+            Resource.list()
         else:
             print('Invalid argument!')
     elif len(sys.argv) == 3:
@@ -168,4 +169,4 @@ if __name__ == '__main__':
         else:
             print('Invalid argument!')
     else:
-        print('Specify [ add / extract / remove / query ]!')
+        print('Specify [ add / extract / remove / list ]!')
