@@ -1,3 +1,4 @@
+import os
 import sys
 import zlib
 import base64
@@ -128,6 +129,14 @@ class Resource:
         yield path
         if delete:
             path.unlink()
+
+    @classmethod
+    def ensure(cls, path, name=None):
+        if not os.path.isfile(path):
+            if name:
+                print(f'{name} was not found, extracting...')
+            with cls.load(path, delete=False) as file:
+                pass
 
     @classmethod
     def __preload(cls, path):

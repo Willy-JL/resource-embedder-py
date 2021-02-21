@@ -24,22 +24,25 @@ The manager aspect of this tool is command line:
 
 ## Use resources
 
+Make sure the exists, and extract it if it doesn't:
+
+```python
+from resources import Resource
+
+Resource.ensure('filename')
+  # OR
+Resource.ensure('filename', 'name')  # providing a second argument will print "<name> was not found, extracting..." if the file needs to be extracted
+```
+
+Alternatively, extract it and delete it after it's been used:
+
 ```python
 from resources import Resource
 
 with Resource.load('filename') as file:
     # Anything you would do with a normal file
     contents = open(file).read()
-```
-
-If you need to keep the file and not delete it:
-
-```python
-from resources import Resource
-
-with Resource.load('filename', delete=False) as file:
-    # Anything you would do with a normal file
-    contents = open(file).read()
+  # The temporary extracted file will be deleted after exiting from the "with" block
 ```
 
 ### Credits:
