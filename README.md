@@ -8,19 +8,27 @@ The manager aspect of this tool is command line:
 
 #### Add files:
 
-`python resources.py add filename`
+```
+python resources.py add filename
+```
 
 #### Extract files:
 
-`python resources.py extract filename`
+```
+python resources.py extract filename
+```
 
 #### Remove files:
 
-`python resources.py remove filename`
+```
+python resources.py remove filename
+```
 
 #### Show files:
 
-`python resources.py query`
+```
+python resources.py query
+```
 
 ## Use resources
 
