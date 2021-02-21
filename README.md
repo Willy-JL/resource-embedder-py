@@ -24,7 +24,7 @@ The manager aspect of this tool is command line:
 
 ## Use resources
 
-Make sure the exists, and extract it if it doesn't:
+Make sure the file exists, and extract it if it doesn't:
 
 ```python
 from resources import Resource
